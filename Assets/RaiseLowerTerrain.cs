@@ -78,13 +78,13 @@ public class RaiseLowerTerrain : MonoBehaviour {
         //stops the pointer from going out of bounds
         if (terX < 0) {
             terX = 0;
-        }else if (terX > xResolution) {
+        } else if (terX > xResolution) {
             terX = xResolution;
         }
 
         if (terZ < 0) {
             terZ = 0;
-        }else if (terZ > zResolution) {
+        } else if (terZ > zResolution) {
             terZ = zResolution;
         }
 
@@ -106,62 +106,5 @@ public class RaiseLowerTerrain : MonoBehaviour {
             }
         }
         myTerrain.terrainData.SetHeights(terX, terZ, heights);
-    }
-
-    private void RaiselowerTerrainPoint(Vector3 point, float incdec) {
-        int terX = (int)((point.x / myTerrain.terrainData.size.x) * xResolution);
-        int terZ = (int)((point.z / myTerrain.terrainData.size.z) * zResolution);
-        float y = heights[terX, terZ];
-        y += incdec;
-        float[,] height = new float[1, 1];
-        height[0, 0] = Mathf.Clamp(y, 0, 1);
-        heights[terX, terZ] = Mathf.Clamp(y, 0, 1);
-        myTerrain.terrainData.SetHeights(terX, terZ, height);
-    }
-
-    protected void TextureDeformation(Vector3 pos, float craterSizeInMeters, int textureIDnum) {
-        Vector3 alphaMapTerrainPos = GetRelativeTerrainPositionFromPos(pos, myTerrain, alphaMapWidth, alphaMapHeight);
-        int alphaMapCraterWidth = (int)(craterSizeInMeters * (alphaMapWidth / myTerrain.terrainData.size.x));
-        int alphaMapCraterLength = (int)(craterSizeInMeters * (alphaMapHeight / myTerrain.terrainData.size.z));
-        int alphaMapStartPosX = (int)(alphaMapTerrainPos.x - (alphaMapCraterWidth / 2));
-        int alphaMapStartPosZ = (int)(alphaMapTerrainPos.z - (alphaMapCraterLength / 2));
-        float[,,] alphas = myTerrain.terrainData.GetAlphamaps(alphaMapStartPosX, alphaMapStartPosZ, alphaMapCraterWidth, alphaMapCraterLength);
-        float circlePosX;
-        float circlePosY;
-        float distanceFromCenter;
-        for (int i = 0; i < alphaMapCraterLength; i++) //width
-        {
-            for (int j = 0; j < alphaMapCraterWidth; j++) //height
-            {
-                circlePosX = (j - (alphaMapCraterWidth / 2)) / (alphaMapWidth / myTerrain.terrainData.size.x);
-                circlePosY = (i - (alphaMapCraterLength / 2)) / (alphaMapHeight / myTerrain.terrainData.size.z);
-                distanceFromCenter = Mathf.Abs(Mathf.Sqrt(circlePosX * circlePosX + circlePosY * circlePosY));
-                if (distanceFromCenter < (craterSizeInMeters / 2.0f)) {
-                    for (int layerCount = 0; layerCount < numOfAlphaLayers; layerCount++) {
-                        //could add blending here in the future
-                        if (layerCount == textureIDnum) {
-                            alphas[i, j, layerCount] = 1;
-                        } else {
-                            alphas[i, j, layerCount] = 0;
-                        }
-                    }
-                }
-            }
-        }
-        myTerrain.terrainData.SetAlphamaps(alphaMapStartPosX, alphaMapStartPosZ, alphas);
-    }
-
-    protected Vector3 GetNormalizedPositionRelativeToTerrain(Vector3 pos, Terrain terrain) {
-        Vector3 tempCoord = (pos - terrain.gameObject.transform.position);
-        Vector3 coord;
-        coord.x = tempCoord.x / myTerrain.terrainData.size.x;
-        coord.y = tempCoord.y / myTerrain.terrainData.size.y;
-        coord.z = tempCoord.z / myTerrain.terrainData.size.z;
-        return coord;
-    }
-
-    protected Vector3 GetRelativeTerrainPositionFromPos(Vector3 pos, Terrain terrain, int mapWidth, int mapHeight) {
-        Vector3 coord = GetNormalizedPositionRelativeToTerrain(pos, terrain);
-        return new Vector3((coord.x * mapWidth), 0, (coord.z * mapHeight));
     }
 }
