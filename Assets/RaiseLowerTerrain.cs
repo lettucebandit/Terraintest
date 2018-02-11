@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class RaiseLowerTerrain : MonoBehaviour {
     public Terrain myTerrain;
@@ -14,6 +15,7 @@ public class RaiseLowerTerrain : MonoBehaviour {
     protected int alphaMapHeight;
     protected int numOfAlphaLayers;
     private float[,,] alphaMapBackup;
+    private float raiseMagnitude;
 
 
     void Start() {
@@ -46,22 +48,59 @@ public class RaiseLowerTerrain : MonoBehaviour {
             if (Physics.Raycast(ray, out hit)) {
                 // area middle point x and z, area width, area height, smoothing distance, area height adjust
                 raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, 0.001f);
-                //TextureDeformation(hit.point, 2000f, 0);
-
             }
         }
-        if (Input.GetMouseButtonDown(1)) {
+        if (Input.GetMouseButton(1)) {
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit)) {
                 // area middle point x and z, area width, area height, smoothing distance, area height adjust
-                raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, -0.01f);
-                // area middle point x and z, area size, texture ID from terrain textures
-                //TextureDeformation(hit.point, 2000f, 0);
+                raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, -0.001f);
             }
         }
 
     }
+
+
+    private void raiseGaussian(Vector3 point, float size) {
+
+        float halfPoint = size / 2;
+        int sizeInt = (int)(size);
+
+
+        float[,] baseHeights = myTerrain.terrainData.GetHeights((int)(point.x-halfPoint),(int)(point.z-halfPoint), sizeInt, sizeInt);
+        float[,] gaussianAddition = applyGaussianAdditor(sizeInt);
+
+        
+
+
+
+
+        Mathf.Pow(Mathf.Sqrt(2 * Mathf.PI),-1);
+    }
+
+    private float[,] applyGaussianAdditor(int sizeInt) {
+        float[,] additionalHeights = new float[sizeInt,sizeInt];
+        Vector2 midpoint = new Vector2();
+        midpoint.x = (float)sizeInt/2;
+        midpoint.y = (float)sizeInt/2;
+
+        for (int xIterator = 0; xIterator<sizeInt; xIterator++) {
+            for (int yIterator = 0; yIterator < sizeInt; yIterator++) {
+                Vector2 point = new Vector2();
+                point.x = (float)xIterator;
+                point.y = (float)yIterator;
+                float DistanceToCentre = Vector2.Distance(midpoint, point);
+                float gaussianRaise()
+            }
+        }
+        
+
+        return additionalHeights;
+    }
+
+
+    //zombie code
 
 
     private void raiselowerTerrainArea(Vector3 point, int lenx, int lenz, int smooth, float incdec) {
@@ -70,9 +109,9 @@ public class RaiseLowerTerrain : MonoBehaviour {
         int terX = (int)((point.x / myTerrain.terrainData.size.x) * xResolution); // do not understand why these two lines are here
         int terZ = (int)((point.z / myTerrain.terrainData.size.z) * zResolution);
 
-        lenx += smooth;
+        lenx += smooth; // the upper bound for the raising square
         lenz += smooth;
-        terX -= (lenx / 2);
+        terX -= (lenx / 2); // the lower bound for raising square
         terZ -= (lenz / 2);
 
         //stops the pointer from going out of bounds
@@ -107,4 +146,11 @@ public class RaiseLowerTerrain : MonoBehaviour {
         }
         myTerrain.terrainData.SetHeights(terX, terZ, heights);
     }
+    */
+
+
+
+
+
+
 }
