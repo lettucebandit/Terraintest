@@ -4,6 +4,8 @@ using System;
 
 public class RaiseLowerTerrain : MonoBehaviour {
     public Terrain myTerrain;
+    public static float sigma=1f;
+    public static float scale = 0.01f;
     public int SmoothArea;
     private int xResolution;
     private int zResolution;
@@ -47,7 +49,8 @@ public class RaiseLowerTerrain : MonoBehaviour {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit)) {
                 // area middle point x and z, area width, area height, smoothing distance, area height adjust
-                raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, 0.001f);
+                //raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, 0.001f);
+                raiseGaussian(hit.point, 10);
             }
         }
         if (Input.GetMouseButton(1)) {
@@ -55,7 +58,8 @@ public class RaiseLowerTerrain : MonoBehaviour {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit)) {
                 // area middle point x and z, area width, area height, smoothing distance, area height adjust
-                raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, -0.001f);
+                //raiselowerTerrainArea(hit.point, 10, 10, SmoothArea, -0.001f);
+                raiseGaussian(hit.point, 10);
             }
         }
 
@@ -66,17 +70,21 @@ public class RaiseLowerTerrain : MonoBehaviour {
 
         float halfPoint = size / 2;
         int sizeInt = (int)(size);
+        int xCorner = (int)(point.x - halfPoint);
+        int zCorner = (int)(point.z - halfPoint);
 
 
-        float[,] baseHeights = myTerrain.terrainData.GetHeights((int)(point.x-halfPoint),(int)(point.z-halfPoint), sizeInt, sizeInt);
+        float[,] baseHeights = myTerrain.terrainData.GetHeights(xCorner, zCorner, sizeInt, sizeInt);
         float[,] gaussianAddition = applyGaussianAdditor(sizeInt);
 
-        
+        for (int i=0;i<sizeInt;i++) {
+            for (int j = 0; j < sizeInt; j++) {
+                
+                baseHeights[i, j] += gaussianAddition[i, j];
+            }
+        }
+        myTerrain.terrainData.SetHeights(xCorner, zCorner, baseHeights);
 
-
-
-
-        Mathf.Pow(Mathf.Sqrt(2 * Mathf.PI),-1);
     }
 
     private float[,] applyGaussianAdditor(int sizeInt) {
@@ -91,12 +99,24 @@ public class RaiseLowerTerrain : MonoBehaviour {
                 point.x = (float)xIterator;
                 point.y = (float)yIterator;
                 float DistanceToCentre = Vector2.Distance(midpoint, point);
-                float gaussianRaise()
+                float raise = gaussianRaise(DistanceToCentre);
+                additionalHeights[xIterator, yIterator] = raise;
             }
         }
         
 
         return additionalHeights;
+    }
+
+    private float gaussianRaise(float d) {
+
+       
+        float prefix = Mathf.Pow(Mathf.Sqrt(2 * Mathf.PI*Mathf.Pow(sigma,2)), -1);
+        float e = 2.71828f;
+        float exponent = -Mathf.Pow(d, 2) / (2 * Mathf.Pow(sigma, 2));
+        
+        return scale*prefix * Mathf.Pow(e,exponent);
+
     }
 
 
@@ -146,7 +166,7 @@ public class RaiseLowerTerrain : MonoBehaviour {
         }
         myTerrain.terrainData.SetHeights(terX, terZ, heights);
     }
-    */
+    
 
 
 
